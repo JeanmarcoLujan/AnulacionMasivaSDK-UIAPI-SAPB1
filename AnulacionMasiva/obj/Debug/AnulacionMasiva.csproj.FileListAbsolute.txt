@@ -1,0 +1,6 @@
+C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\Debug\AnulacionMasiva.csprojAssemblyReference.cache
+C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\Debug\Interop.SAPbobsCOM.dll
+C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\Debug\Interop.SAPbouiCOM.dll
+C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\Debug\AnulacionMasiva.csproj.ResolveComReference.cache
+C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\Debug\AnulacionMasiva.Properties.Resources.resources
+C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\Debug\AnulacionMasiva.csproj.GenerateResource.cache
