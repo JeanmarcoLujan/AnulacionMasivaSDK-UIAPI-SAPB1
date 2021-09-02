@@ -14,7 +14,7 @@ namespace AnulacionMasiva.Formularios
             if (PrimeraCarga)
             {
                 CargarFormulario();
-                CargarGridDetallePago();
+                //CargarGridDocumentos();
             }
         }
 
@@ -42,10 +42,13 @@ namespace AnulacionMasiva.Formularios
                                         if (pVal.ColUID.Equals("Seleccion"))
                                             MarcarHijos(pVal.Row, "grid_Res", "Seleccion");
                                         break;
-                                    case "bt_anu":
+                                    case "bt_anu": //bt_bu
                                         Form oForm = Conexion.Conexion_SBO.m_SBO_Appl.Forms.Item("Frm_AMasivas");
 
                                         AnularDocumentos(oForm);
+                                        break;
+                                    case "bt_bu": //bt_bu
+                                        CargarGridDocumentos();
                                         break;
                                 }
                                 break;
@@ -71,6 +74,9 @@ namespace AnulacionMasiva.Formularios
                 oParams.UniqueID = "Frm_AMasivas";//Creamos un ID unico para el formulario
                 oParams.XmlData = AnulacionMasiva.Properties.Resources.Frm_AMasivas;//Cargamos el formulario del archivo Contador.srf contenido en nuestros recursos
                 oForm = Conexion.Conexion_SBO.m_SBO_Appl.Forms.AddEx(oParams);//Registramos el formulario en SBO
+                //oForm.DataSources.UserDataSources.Add("ud_FD", SAPbouiCOM.BoDataType.dt_DATE, 1);
+                //oForm.DataSources.UserDataSources.Add("ud_FH", SAPbouiCOM.BoDataType.dt_DATE, 1);
+                oForm.DataSources.UserDataSources.Item("ud_FA").Value = DateTime.Now.ToString("yyyyMMdd");
                 oForm.Freeze(true);//Congela Ventana
 
                 oForm.Left = Conexion.Conexion_SBO.m_SBO_Appl.Forms.GetFormByTypeAndCount(169, 0).Width + 10;
@@ -91,7 +97,7 @@ namespace AnulacionMasiva.Formularios
         }
 
 
-        private void CargarGridDetallePago()
+        private void CargarGridDocumentos()
         {
             SAPbouiCOM.Form oForm = null;
             SAPbouiCOM.Item oItem = null;
@@ -99,6 +105,11 @@ namespace AnulacionMasiva.Formularios
             SAPbobsCOM.AdminInfo oADM = null;
             SAPbobsCOM.CompanyService oCS = null;
             SAPbouiCOM.ProgressBar oPB = null;
+
+            string s_FCDesde = "";
+            string s_FCHasta = "";
+
+            string formatoFecha = FormatoFecha();
 
 
             //cambio
@@ -116,6 +127,7 @@ namespace AnulacionMasiva.Formularios
                 oForm.Freeze(true);
                 oItem = oForm.Items.Item("grid_Res");
                 oForm.PaneLevel = 1;
+                var asds = oForm.DataSources.UserDataSources.Item("ud_FD").Value.ToString();
                 oGrid = (SAPbouiCOM.Grid)oItem.Specific;
                 oGrid.DataTable = oForm.DataSources.DataTables.Item("dt_Res");
                 
@@ -125,9 +137,24 @@ namespace AnulacionMasiva.Formularios
                 oPB.Value = 1;
 
                 #region Operaciones de SN y Fechas
-                
 
-                oGrid.DataTable.ExecuteQuery(Comunes.Consultas.Facturas());
+                if (!oForm.DataSources.UserDataSources.Item("ud_FD").Value.ToString().Equals(""))
+                {
+                    s_FCDesde = DateTime.ParseExact(oForm.DataSources.UserDataSources.Item("ud_FD").Value.ToString().Trim(), formatoFecha, null).Year.ToString();
+                    s_FCDesde = s_FCDesde + CompletarCeros(DateTime.ParseExact(oForm.DataSources.UserDataSources.Item("ud_FD").Value.ToString().Trim(), formatoFecha, null).Month.ToString());
+                    s_FCDesde = s_FCDesde + CompletarCeros(DateTime.ParseExact(oForm.DataSources.UserDataSources.Item("ud_FD").Value.ToString().Trim(), formatoFecha, null).Day.ToString());
+
+                }
+
+                if (!oForm.DataSources.UserDataSources.Item("ud_FH").Value.ToString().Equals(""))
+                {
+                    s_FCHasta = DateTime.ParseExact(oForm.DataSources.UserDataSources.Item("ud_FH").Value.ToString().Trim(), formatoFecha, null).Year.ToString();
+                    s_FCHasta = s_FCHasta + CompletarCeros(DateTime.ParseExact(oForm.DataSources.UserDataSources.Item("ud_FH").Value.ToString().Trim(), formatoFecha, null).Month.ToString());
+                    s_FCHasta = s_FCHasta + CompletarCeros(DateTime.ParseExact(oForm.DataSources.UserDataSources.Item("ud_FH").Value.ToString().Trim(), formatoFecha, null).Day.ToString());
+                }
+
+
+                oGrid.DataTable.ExecuteQuery(Comunes.Consultas.Facturas(s_FCDesde, s_FCHasta));
 
                 oGrid.Columns.Item("Seleccion").Type = SAPbouiCOM.BoGridColumnType.gct_CheckBox;
                 oGrid.Columns.Item("Seleccion").TitleObject.Caption = "Seleccion";
@@ -156,6 +183,45 @@ namespace AnulacionMasiva.Formularios
             }
         }
 
+        private string CompletarCeros(string s_valor)
+        {
+            if (s_valor.Length.ToString().Equals("1"))
+                return "0" + s_valor;
+            else
+                return s_valor;
+        }
+
+        public  string FormatoFecha()
+        {
+            SAPbobsCOM.Recordset oRS = null;
+            string Formato = "";
+            try
+            {
+
+                oRS = (SAPbobsCOM.Recordset)Conexion.Conexion_SBO.m_oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
+                oRS.DoQuery(Comunes.Consultas.FormatoFechaC());
+                if (oRS.RecordCount > 0)
+                {
+                    string result = oRS.Fields.Item(0).Value.ToString();
+                    if (result.Equals("0"))
+                    {
+                        Formato = "dd/MM/yy";
+                    }
+                    else if (result.Equals("1"))
+                    {
+                        Formato = "dd/MM/yyyy";
+                    }
+
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                
+            }
+            return Formato;
+        }
 
         private void MarcarHijos(int row, string grid, string columna)
         {
@@ -218,15 +284,16 @@ namespace AnulacionMasiva.Formularios
 
             string sErrMsg = "";
             SAPbouiCOM.ProgressBar oPB = null;
-            int TotalDTRows = 0;
 
             SAPbobsCOM.Recordset oRS = null;
-            SAPbobsCOM.Documents oDoc = null;
+    
             SAPbobsCOM.AdminInfo oADM = null;
             SAPbobsCOM.CompanyService oCS = null;
 
             SAPbobsCOM.Documents oDocument = null;
+            SAPbobsCOM.Documents oNotaCredito = null;
 
+            string formatoFecha = FormatoFecha();
             try
             {
                 oForm.Freeze(true);
@@ -237,7 +304,6 @@ namespace AnulacionMasiva.Formularios
                 #region Ajustar DataTable
 
                 // Limpiando documentos no seleccionados
-     
                 
 
                 for (int j = 0; j < oForm.DataSources.DataTables.Item("dt_Res").Rows.Count; j++)
@@ -245,27 +311,53 @@ namespace AnulacionMasiva.Formularios
                     if (!oForm.DataSources.DataTables.Item("dt_Res").GetValue("Seleccion", j).ToString().Equals("N"))
                     {
 
-          
                         oDocument = null;
                         oDocument = (SAPbobsCOM.Documents)Conexion.Conexion_SBO.m_oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oInvoices);
                         oDocument.GetByKey(int.Parse(oForm.DataSources.DataTables.Item("dt_Res").GetValue("DocEntry", j).ToString()));
-   
-                        var iErrCod = oDocument.Cancel();
+                        oNotaCredito = null;
+                        oNotaCredito = (SAPbobsCOM.Documents)Conexion.Conexion_SBO.m_oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oCreditNotes);
 
+                        oNotaCredito.CardCode = oDocument.CardCode;
+
+                        oNotaCredito.DocDate = DateTime.ParseExact(oForm.DataSources.UserDataSources.Item("ud_FA").Value.ToString().Trim(), formatoFecha, null); 
+                        oNotaCredito.TaxDate = DateTime.ParseExact(oForm.DataSources.UserDataSources.Item("ud_FA").Value.ToString().Trim(), formatoFecha, null);
+                        oNotaCredito.DocDueDate = DateTime.ParseExact(oForm.DataSources.UserDataSources.Item("ud_FA").Value.ToString().Trim(), formatoFecha, null);
+                        oNotaCredito.Indicator = "07";
+
+                        //oNotaCredito.FolioPrefixString = "LT";
+                        //oNotaCredito.FolioNumber = oDocument.FolioNumber;
+
+
+                        for (int i=0; i < oNotaCredito.Lines.Count; i++) {
+                            oNotaCredito.Lines.SetCurrentLine(i);
+                            oNotaCredito.Lines.BaseEntry = oDocument.DocEntry;
+                            oNotaCredito.Lines.BaseLine = oDocument.Lines.LineNum;
+                            oNotaCredito.Lines.WarehouseCode = oDocument.Lines.WarehouseCode;
+                            oNotaCredito.Lines.AccountCode = oDocument.Lines.AccountCode;
+                            oNotaCredito.Lines.BaseType = 13;
+                            
+                            if (i != oNotaCredito.Lines.Count-1)
+                                oNotaCredito.Lines.Add();
+
+                        }
+                        var iErrCod = oNotaCredito.Add();
 
                         if (iErrCod != 0)
                         {
                             Conexion.Conexion_SBO.m_oCompany.GetLastError(out iErrCod, out sErrMsg);
-                           
+
                         }
+                        
+                            
+                        
 
 
                     }
                 }
 
+                CargarGridDocumentos();
+
                 
-
-
 
                 #endregion
 

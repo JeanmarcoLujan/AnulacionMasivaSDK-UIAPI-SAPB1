@@ -9,3 +9,4 @@ C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\bin\x86\Debug\Anulaci
 C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\x86\Debug\AnulacionMasiva.exe
 C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\x86\Debug\AnulacionMasiva.pdb
 C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\x86\Debug\AnulacionMasiva.csprojAssemblyReference.cache
+C:\Users\User\source\repos\AnulacionMasiva\AnulacionMasiva\obj\x86\Debug\AnulacionMasiva.csproj.CoreCompileInputs.cache
